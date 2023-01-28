@@ -1,0 +1,129 @@
+---
+title: 条件语句
+---
+# 4-条件语句
+条件语句会基于判断条件而执行不同的代码块
+
+## 条件语句的使用
+在编写代码时，我们经常遇到需要根据一些判断来执行对应操作的场景，比如我要判断操作者是否为Owner，判断金额是否整数。这时候我们就需要用到条件语句。  
+虽然if else是基础，但是在他之上有很多衍生的使用方式。
+- if ...
+- if ... else ...
+- if ... else if ... else ...
+- if ... else if ... else if ...
+- if ... else if ... else if ... else ...
+
+
+不过并不着急去背诵上面的使用方式，因为if else是一种非常灵活的多变语法。我们需要知道的是，else if是可以无限叠加的。我们来看几个简单的例子。
+
+```sol autorun autocall='test()'
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    function test() public pure returns (uint){
+        uint a = 4;
+        uint b = 0;
+        if (a >= 1){
+            b |= 1;
+        }else if (a >= 2){
+            b |= 2;
+        }else if (a >= 3){
+            b |= 4;
+        }else{
+            b |= 8;
+        }
+
+        return b;
+    }
+}
+```
+不出所料的返回内容为`1`。这里只执行了第一个if语句。我们根据上面的代码可以得知的事，当多个 if ... else ...链接的时候，只有第一个满足条件的语句会被执行。如果所有条件都不满足，那么else后的语句会被执行。  
+我们来看第二个例子。
+```sol autorun autocall='test()'
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    function test() public pure returns (uint){
+        uint a = 4;
+        uint b = 0;
+        if (a >= 1){
+            b |= 1;
+        }
+        if (a >= 2){
+            b |= 2;
+        }
+        if (a >= 3){
+            b |= 4;
+        }else{
+            b |= 8;
+        }
+
+        return b;
+    }
+}
+```
+结果为7，二进制表示为`0111`，也就是说，三个if都被执行了，但是最后一个if的else部分没有执行。我们可以得到第二个结论，当多个if语句独立存在的时候，每个if都会被执行。
+
+## 条件运算符（三元运算）
+条件运算符是一种特殊的语法，它可以用来简化if else的使用。他的形式为`condition ? true : false`。  
+上面的第二个例子我们可以改写为：
+```sol autorun autocall='test()'
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    function test() public pure returns (uint){
+        uint a = 4;
+        uint b = 0;
+        b |= a >= 1 ? 1 : 0;
+        b |= a >= 2 ? 2 : 0;
+        b |= a >= 3 ? 4 : 8;
+
+        return b;
+    }
+}
+```
+这样我们就可以用更简洁的代码来实现同样的功能。
+
+<Challenges>
+<Challenge title='条件判断实践题'>
+<div className='cl-title'>请将下方合约按照注释内容完善，难度：🌟</div>
+<CoEditor runnable={true}
+test={async(vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+
+    for(let i=0;i<10;i++){
+        const input = Math.floor(20 * Math.random())
+        const expect = input >= 10 ? '1' : '0'
+        await h.catchRawTest(`检测test函数结果，输入:${input}`,async()=>{
+            await h.checkResult(contract,'test(uint256)',[expect],[input])
+        },data)
+    }
+    
+
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    function test(uint a) public pure returns (uint){
+        // todo:请完成一个条件语句的编写，当a大于等于10的时候，返回1，否则返回0
+    }
+}
+```
+</CoEditor>
+<Challenge.Solution>
+```sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    function test(uint a) public pure returns (uint){
+        return a >= 10 ? 1 : 0;
+    }
+}
+```
+</Challenge.Solution>
+</Challenge>
+</Challenges>

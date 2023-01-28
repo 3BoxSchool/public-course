@@ -1,0 +1,157 @@
+---
+title: 智能单位
+---
+# 3-智能单位
+在Solidity中，我们需要知道一点既定事实。总所周知，我们可以有`wei`，`szabo`，`finney`，`ether`等单位来表示以太币。  
+同时也有`seconds`，`minutes`，`hours`，`days`，`weeks`等单位来表示时间。  
+我们知道，`1 ether = 10^18 wei`，`1 minute = 60 seconds`。因此，我们如果要在代码里表示`1 eth`的内容，我们可以选择输入`10 ** 18`，但是这并不是好的做法。  
+因此，Solidity提供了一种更好的方式来表示这些单位。一种是`Ether Units`用于表示ETH的单位，另一种是`Time Units`用于表示时间的单位。
+
+## Ether Units
+最早时，Solidity提供了`wei`，`szabo`，`finney`，`ether`等单位来表示ETH的单位。不过在`0.7.0`版本后，Solidity删除了`szabo`和`finney`单位。只保留了`wei`，`gwei`，`ether`。
+```sol autorun
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public unitWei = 1 wei;
+    uint public uintGwei = 1 gwei;
+    uint public uintEther = 1 ether;
+
+    bool public isWei = unitWei == 1;
+    bool public isGwei = uintGwei == 10 ** 9;
+    bool public isEther = uintEther == 10 ** 18;
+    constructor() {
+        assert(isWei);
+        assert(isGwei);
+        assert(isEther);
+    }
+}
+```
+可以看到，`wei`，`gwei`，`ether`他们之间的转换关系为`1 ether == 10 ** 9 gwei == 10 ** 18 wei`。
+## Time Units
+那么，如何表示时间量呢？Solidity提供了`seconds`，`minutes`，`hours`，`days`，`weeks`等单位来表示时间。  
+```sol autorun
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public unitSeconds = 1 seconds;
+    uint public uintMinutes = 1 minutes;
+    uint public uintHours = 1 hours;
+    uint public uintDays = 1 days;
+    uint public uintWeeks = 1 weeks;
+
+    bool public isSeconds = unitSeconds == 1;
+    bool public isMinutes = uintMinutes == 60;
+    bool public isHours = uintHours == 60 * 60;
+    bool public isDays = uintDays == 60 * 60 * 24;
+    bool public isWeeks = uintWeeks == 60 * 60 * 24 * 7;
+
+    constructor() {
+        assert(isSeconds);
+        assert(isMinutes);
+        assert(isHours);
+        assert(isDays);
+        assert(isWeeks);
+    }
+}
+```
+他们的转换关系如上述代码所示。
+<Note>
+提示，即使使用了智能单位，我们依然可以使用一般的运算符号，比如`+`，`-`，`*`，`/`，`%`等来进行运算。
+</Note>
+<Challenges>
+<Challenges.Header>
+## 习题
+</Challenges.Header>
+
+<Challenge title='转换实践题'>
+<div className='cl-title'>请将下方合约按照注释内容完善，难度：🌟</div>
+<CoEditor runnable={true} 
+test={async(vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+
+    await h.catchRawTest("检测MintPrice",async () => {
+        const mintPrice = await contract.mintPrice()
+        if(mintPrice.toString() !== '10000000000000000'){
+            throw new Error('MintPrice不正确')
+        }
+    },data)
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    // todo: 现在有一个NFT Mint的场景，现在我们希望在合约中设置一个Mint的价格，为0.01 ETH。
+    // todo: 请设置一个变量，名字为 mintPrice，类型为 uint,访问权设定为 public，并且设置为0.01 ETH。
+}
+```
+</CoEditor>
+<Challenge.Hint>
+根据题意，我们只需要设置变量即可，同时要提醒的是，在使用`ether`单位时，你可以使用小数来表示，比如`0.01 ether`。只要保证最后的结果是一个整数即可。
+</Challenge.Hint>
+<Challenge.Solution>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public mintPrice = 0.01 ether;
+}
+```
+</Challenge.Solution>
+</Challenge>
+
+<Challenge title='转换时间单位实践题'>
+<div className='cl-title'>请将下方合约按照注释内容完善，难度：🌟</div>
+<CoEditor runnable={true} 
+test={async(vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+
+    await h.catchRawTest("检测startTime",async () => {
+        const deployTime = await contract.deployTime()
+        const startTime = await contract.startTime()
+        if(startTime.toNumber() - deployTime.toNumber() !== 60 * 60 * 24){
+            throw new Error('startTime不正确')
+        }
+    },data)
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public deployTime;
+    uint public startTime;
+
+    constructor(){
+        deployTime = block.timestamp;
+        // todo:请编写代码，将startTime设置为deployTime的1天后
+
+    }
+}
+```
+</CoEditor>
+<Challenge.Hint>
+根据题意，我们只需要设定`startTime`为`deployTime`一天后，于是我们可以使用一个简单的计算来完成这个任务，`startTime = deployTime + 1 days;`。
+</Challenge.Hint>
+<Challenge.Solution>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public deployTime;
+    uint public startTime;
+
+    constructor(){
+        deployTime = block.timestamp;
+        startTime = deployTime + 1 days;       
+    }
+}
+```
+</Challenge.Solution>
+</Challenge>
+</Challenges>

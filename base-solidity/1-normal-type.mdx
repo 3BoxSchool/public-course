@@ -1,0 +1,322 @@
+---
+title: 常用数据类型
+---
+# 1-常用数据类型
+这是这篇教程的第一章，我们会通过一些简短的文字来简单讲述Solitidy中常用的数据类型，并且通过几个测试来检验成果。
+
+---
+
+## 常见数据类型
+和一般的编程语言不同，Solidity中并没有浮点数的标准实现，也就是没有`float`，和`double`这种类型。而我们常见的类型有。  
+- boolean 布尔值
+- uintN 无符号整数
+- intN 有符号整数
+- address 地址类型
+- bytesN 字节数组
+
+你肯定会疑惑，在Solidity如何表示浮点数，当然，这也是大家头痛的地方，于是出现了非常多的替代实现，不过这不是本章重点。
+
+### boolean 布尔值
+boolean类型是计算机中的基石，你可以认为这个可以用0和1表示的数据类型造就了整个计算机体系。  
+boolean类型的声明方式如下。
+```sol autorun deploySetting="BoolContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract BoolContract{
+    bool public iAmBool = true;
+    bool public iAmBoolButFalse = false;
+
+    //没有赋值，则默认为false
+    bool public iAmBoolButDefault;
+}
+```
+在Solidity中，如果你对一个变量没有进行赋值，那么他会自动初始化为0数据状态。也就是说，bool会被初始化为false，而int会被初始化为0。
+
+### uint 无符号整数
+uint其实是uint256的别名，一般情况下，我们都会使用uint来储存一个无符号整数，也就是正整数。  
+当然，uint还有其他的兄弟类型，比如uint8,uint16,uint24.....uint256。他们分别表示的是储存大小不同的uint值。他们的规律是，数据大小都是8的倍数，也就是一个字节。  
+比如
+- uint8   的取值范围为 0 ~ 2<sup>8</sup> - 1
+- uint24  的取值范围为 0 ~ 2<sup>24</sup> - 1
+- ...
+- uint256 的取值范围为 0 ~ 2<sup>256</sup> - 1
+```sol autorun deploySetting="UintContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract UintContract{
+    // uint即为uint256别名
+    uint public isUint256 = type(uint).max;
+    uint24 public isUint24 = type(uint24).max;
+    // uint系列在不赋值的情况下都为0
+    uint public isUintDefault;
+}
+```
+### int 有符号类型
+int类型基本和uint一致，包括兄弟类型等等，唯一不同的就是取值范围，比如int256的取值范围为 `-2<sup>255</sup> ~ 2<sup>255</sup> - 1`。  
+```sol autorun deploySetting="IntContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract IntContract{
+    // int即为int256别名
+    int public isInt256 = type(int).min;
+    int24 public isInt24 = type(int24).max;
+    // int系列在不赋值的情况下都为0
+    int public isIntDefault;
+}
+```
+int和uint最大的区别是，uint的最小值是0，而int的最小值是负数。不过在大部分情况下Solidity中的整数都会使用uint来表示。
+### address 地址类型
+地址类型是一种非常常见的类型，但是在进行赋值的时候需要注意，Solidity中认为长度为40个字符的，并且符合checksum规则的数据为address。  
+```sol autorun deploySetting="AddrContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract AddrContract{
+    address public addr = 0x6E12A28086548B11dfcc20c75440E0B3c10721f5;
+
+    /*
+    下面是一个错误的声明方式。因为下面这段数据不符合checksum规则。
+    address public wrongAddr = 0x6e12a28086548b11dfcc20c75440e0b3c10721f5;
+    为了更清楚的对比checksum的地址和非checksum的地址，我将数据拿下来进行对比。
+    0x6E12A28086548B11dfcc20c75440E0B3c10721f5 - checksum
+    0x6e12a28086548b11dfcc20c75440e0b3c10721f5 - 非checksum
+
+    你看到了什么？是不是数据中有些字母是大写，而有些不是。这其实就是checksum的规则。
+    如果你需要详细了解，请进入该网站查看：https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
+
+    如果你想要使用一个不符合checksum规则的数据作为address。那么你需要使用强制类型转换。
+    代码如下。注意，地址前面需要加两个0将长度超过40位，否则你无法通过编译器校验。
+    */
+    address public forceAddr = address(0x006e12a28086548b11dfcc20c75440e0b3c10721f5);
+
+    // 默认值为0x0000000000000000000000000000000000000000
+    address public defaultAddr;
+}
+```
+### bytes 字节数组
+bytes是一种特殊的数据结构，bytes的类型有byte，bytes1，bytes2 ... bytes32。在计算机中一个字节长度为8，其实这里是可以和uint的数据进行对应的。例如
+- bytes1 -> uint8 
+- bytes2 -> uint16
+- ...
+- bytes32 -> uint256
+在强制转换的情况下，对应长度的数据可以随意转换。同时，bytes也可以和int进行转换，不过我们一般不这么做。
+<Note>
+bytes并不是bytes32的别名，bytes表示的是非定长的字节数组。也就是动态长度字节数组。关于Bytes的声明方式，后续会展开说明。
+</Note>
+```sol autorun deploySetting="BytesContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract BytesContract{
+    /*
+    bytesN系列的声明方式有点特殊，你必须要输入对等长度的数据才合法。比如下面这个方式就是不合法的。
+    bytes1 isBytes1 = 0x1;
+    这种写法在uint下是合法的，但是在bytesN下是不合法的。
+    因为一个字节为8位，也就是2的8次方，即256。在16进制下表达为0x00 ~ 0xFF。
+    以下为正确写法。
+    */
+    bytes1 public isBytes1 = 0x01;
+    bytes2 public isBytes2 = 0x0001;
+    /* 
+    Solidity(💩) 系列小贴士。
+    在上面address章节中，我们知道，任何符合40个字符长度的16进制字符都会被编译器尝试自动转换成address类型，这样我们就无法通过直接赋值的方式给bytes20类型赋值。
+    比如：
+    bytes20 public isBytes20 = 0x0000000000000000000000000000000000000001;
+    当然，我们可以使用：
+    bytes20 public isBytes20 = bytes20(0x0000000000000000000000000000000000000001);
+    把address类型强制转换成bytes20，不过这并不是一个好办法，因为如果你的值中包含了非数字部分，也就是ABCDEF这些内容，同样无法通过checksum检测，无法编译成功。
+    所以，我们最好的办法是使用hex''来进行赋值，比如：
+    bytes20 public hexBytes20 = hex'6e12a28086548b11dfcc20c75440e0b3c10721f5';
+    注意，在使用hex''，你需要去除0x头。
+    */
+    bytes20 public isBytes20 = bytes20(0x0000000000000000000000000000000000000001);
+    bytes20 public hexBytes20 = hex'6e12a28086548b11dfcc20c75440e0b3c10721f5';
+}
+```
+
+<Challenges>
+<Challenges.Header>
+## 习题
+</Challenges.Header>
+
+<Challenge title='综合题'>
+<div className='cl-title'>请将下方合约按照注释内容完善</div>
+<CoEditor deploySetting={{contractName:'TestContract'}} runnable={true}
+test={async (vm,helper)=>{
+    const data = []
+    const {getMainContract,checkFunctionOutputTypes,catchRawTest,checkResult,wrapResult,checkResultCustom} = helper
+    const contract = getMainContract()
+
+    await catchRawTest('检测count变量',async ()=>{
+        checkFunctionOutputTypes(contract,'count()',['uint256'])
+        await checkResult(contract,'count()',['12'])
+    },data)
+
+    await catchRawTest('检测start变量',async ()=>{
+        checkFunctionOutputTypes(contract,'start()',['bool'])
+        await checkResult(contract,'start()',['true'])
+    },data)
+
+    await catchRawTest('检测offset变量',async ()=>{
+        checkFunctionOutputTypes(contract,'offset()',['int256'])
+        await checkResult(contract,'offset()',['-100'])
+    },data)
+
+    await catchRawTest('检测data变量',async ()=>{
+        checkFunctionOutputTypes(contract,'data()',['bytes4'])
+        await checkResultCustom(contract,'data()',(([value])=>{
+            return value !== '0x00000000'?true:`期望非0x00000000值`;
+        }))
+    },data)
+
+    return wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    /*
+    接下来我们将会编写一些代码，在此前我希望完善一下变量编写的说明。
+    目前来说，我们只需要知道一个变量声明的方式为一条语句，由以下部分组成。
+    {type} [{access}|private] {var_name} [= {type value}];
+    其中大括号{}的内容部分为必填内容，中括号[]的内容为可选内容。我将会提供一些样式，希望你能找到规律。
+    uint public test = 1;
+    uint foo = 2;
+    bool boo;
+    address private owner;
+
+    关于access的部分，我们暂时不展开，在接下来的题目中，直接填写public即可。
+    */
+
+    // 请将下面代码完善，要求是：名称为count的变量，值为12，并且类型为uint256
+    /* 请在此处输入类型 */ public count = /*请在此处输入数值*/;
+
+    // 请书写代码完成要求，要求是：名为start的变量，值为true，类型为bool，访问类型为public。
+    /* 请在此处完成你的代码 */
+
+    // 请书写代码完成要求，要求是：现在需要一个变量名为offset，值为-100，请自行选择合适的类型，并且书写代码，访问类型为public
+    /* 请在此处完成你的代码 */
+
+    // 请书写代码完成要求，要求是：请给名为data的变量赋值任意非零数据即可，但是要求返回数据类型必须为bytes4，访问类型为public
+    /* 请在此处完成你的代码 */
+}
+```
+</CoEditor>
+<Challenge.Solution>
+请看下方题解。
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    // 请将下面代码完善，要求是：名称为count的变量，值为12，并且类型为uint256
+    uint256 public count = 12;
+    // 请书写代码完成要求，要求是：名为start的变量，值为true，类型为bool。
+    bool public start = true;
+    // 请书写代码完成要求，要求是：现在需要一个变量名为offset，值为-100，请自行选择合适的类型，并且书写代码
+    int public offset = -100;
+    // 请书写代码完成要求，要求是：请给名为data的变量赋值任意非零数据即可，但是要求返回数据类型必须为bytes4
+    bytes4 public data = 0x00000001;
+}
+```
+</Challenge.Solution>
+</Challenge>
+
+<Challenge title='Address专项题'>
+<div className='cl-title'>请完成正确的address书写</div>
+<CoEditor deploySetting="AddrContract" runnable={true}
+test={async (vm,helper) => {
+    const data = []
+    const {getMainContract,checkFunctionOutputTypes,catchRawTest,checkResult,wrapResult,checkResultCustom} = helper
+    const contract = getMainContract()
+
+    await catchRawTest('检测deadAddr变量',async ()=>{
+        checkFunctionOutputTypes(contract,'deadAddr()',['address'])
+        await checkResult(contract,'deadAddr()',['0x000000000000000000000000000000000000dEaD'])
+    },data)
+
+    await catchRawTest('检测zeroAddr变量',async ()=>{
+        checkFunctionOutputTypes(contract,'zeroAddr()',['address'])
+        await checkResult(contract,'zeroAddr()',['0x0000000000000000000000000000000000000000'])
+    },data)
+
+    return wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract AddrContract{
+    // 请书写代码完成要求，要求是：请给名为deadAddr变量赋值为0x000000000000000000000000000000000000dead地址，访问类型为public
+    /* 请在此处完成你的代码 */
+
+    // 请书写代码完成要求，要求是：请给zeroAddr变量赋值0x0000000000000000000000000000000000000000地址，访问类型为public
+    /* 请在此处完成你的代码，当然你也可以在其他地方完成 */
+}
+```
+</CoEditor>
+<Challenge.Hint>
+注意在声明地址的时候，需要使用0x开头，然后是40个16进制字符，如果不够40个字符，需要在前面补0。并且要注意checksum结果。如果你不知道如何计算，可以直接输入并且编译，编辑器会输出checksum结果。
+</Challenge.Hint>
+<Challenge.Solution>
+```sol autorun={true} deploySetting="AddrContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract AddrContract{
+    // 请书写代码完成要求，要求是：请给名为deadAddr变量赋值为0x000000000000000000000000000000000000dead地址，访问类型为public
+    address public deadAddr = 0x000000000000000000000000000000000000dEaD;
+
+    // 请书写代码完成要求，要求是：请给zeroAddr变量赋值0x0000000000000000000000000000000000000000地址，访问类型为public
+    address public zeroAddr = 0x0000000000000000000000000000000000000000;
+}
+```
+</Challenge.Solution>
+</Challenge>
+<Challenge title="bytesN实战题">
+<div className='cl-title'>请完成正确的byteN书写</div>
+<CoEditor runnable={true} deploySetting="BytesNContract"
+test={async (vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+
+    await h.catchRawTest('检测data变量',async ()=>{
+        h.checkFunctionOutputTypes(contract,'data()',['bytes32'])
+        await h.checkResult(contract,'data()',['0x0000000000000000000000000000000000000000000000000000000000000001'])
+    },data)
+
+    await h.catchRawTest('检测bytesAddr变量',async ()=>{
+        h.checkFunctionOutputTypes(contract,'byteAddr()',['bytes20'])
+        await h.checkResult(contract,'byteAddr()',['0xd8da6bf26964af9d7eed9e03e53415d37aa96045'])
+    },data)
+
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract BytesNContract{
+    // 请书写代码完成要求，要求是：请给名为data变量赋值为0x0000000000000000000000000000000000000000000000000000000000000001，访问类型为public，请选择你认为正确的类型。
+    /* 请在此处完成你的代码 */
+    // 请书写代码完成要求，要求是：请给byteAddr变量赋值为0xd8da6bf26964af9d7eed9e03e53415d37aa96045，访问类型为public，请选择你认为正确的类型。
+    /* 请在此处完成你的代码 */
+}
+```
+</CoEditor>
+<Challenge.Hint>
+我们知道，在对bytesN类型进行赋值的时候，我们需要输入等长的16进制数据，根据bytesN长度计算，我们需要输入的字符长度为2N，并且最前面要添加上0x。这样我们就可以完成bytesN类型的赋值。  
+但是，我们在对bytes20进行赋值的时候，会遇到编译器将其识别为address类型的情况，所以我们在赋值bytes20的时候，我们可以选择使用bytes20()进行强制转换，或者hex''的方式进行赋值。
+</Challenge.Hint>
+<Challenge.Solution>
+```sol autorun={true} deploySetting="BytesNContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract BytesNContract{
+    // 请书写代码完成要求，要求是：请给名为data变量赋值为0x0000000000000000000000000000000000000000000000000000000000000001，访问类型为public，请选择你认为正确的类型。
+    bytes32 public data = 0x0000000000000000000000000000000000000000000000000000000000000001;
+    // 请书写代码完成要求，要求是：请给byteAddr变量赋值为0xd8da6bf26964af9d7eed9e03e53415d37aa96045，访问类型为public，请选择你认为正确的类型。
+    bytes20 public byteAddr = hex'd8da6bf26964af9d7eed9e03e53415d37aa96045';
+}
+```
+</Challenge.Solution>
+</Challenge>
+
+</Challenges>

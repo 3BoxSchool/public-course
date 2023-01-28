@@ -1,0 +1,299 @@
+---
+title: 变量，常量，不变量
+---
+# 2-变量，常量，不变量
+
+## 变量
+变量是Solidity中最常见的内容，它可以用来储存需要修改的数据，包括长期存储和临时存储。一般来说，变量分为3类，内存变量，状态变量，和全局变量。
+- 内存变量：当在函数中声明变量时，大多数情况都是内存变量，这些在一般情况下这些变量将会在函数执行完成后被销毁
+- 状态变量：当在函数外声明变量时，便是储存在区块链上的变量，和内存变量不同，他会储存在合约中，直到合约被销毁。
+- 全局变量：这些变量在运行时会提供一些环境或者上下文的数据，但是我们并不能修改这些内容。
+
+### 内存变量
+```sol autorun deploySetting="VarContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract VarContract{
+    function add() public pure returns(uint){
+        uint a = 1; // 声明一个内存变量
+        uint b = 2; // 声明另外一个内存变量
+        uint c = a + b; // 将两个内存变量相加
+        return c;
+    }
+}
+```
+在上面的代码中，我们声明了两个内存变量，然后将他们相加，最后返回结果。这里需要注意的是，我们并没有声明任何的状态变量。  
+内存变量在函数运行结束后会被销毁，所以我们除了将结果返回外，没有其他方法在函数外访问到这些变量。
+### 状态变量
+那么内存变量的限制下，我们希望将运行结果储存起来，要如何做呢？这时候就需要用到状态变量了。
+```sol autorun deploySetting="StateContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract StateContract{
+    uint public result; // 声明一个状态变量
+    function add() public{
+        uint a = 1; // 声明一个内存变量
+        uint b = 2; // 声明另外一个内存变量
+        uint c = a + b; // 将两个内存变量相加
+        result = c; // 将结果赋值给状态变量
+    }
+}
+```
+情在编辑器编译后，先点击`result()`函数查看结果，然后点击`add()`函数，再点击`result()`函数查看结果，可以看到，状态变量的值已经发生了变化。
+
+### 全局变量
+全局变量是在运行时提供一些环境或者上下文的数据，比如我们常用的`msg.sender`，`msg.value`，`block.timestamp`等等。
+```sol autorun deploySetting="GlobalContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract GlobalContract{
+    function getSender() public view returns(address){
+        return msg.sender;
+    }
+    function getTimestamp() public view returns(uint){
+        return block.timestamp;
+    }
+}
+```
+## 常量
+常量是一种固定的数据，这种数据在编译时就已经确定，不会随着合约的运行而改变。并且在读取常量时使用的GAS相比于变量要少很多。
+```sol autorun deploySetting="ConstantContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract ConstantContract{
+    uint constant a = 1; // 声明一个常量
+    uint b = 2; // 声明一个变量
+    function add() public view returns(uint){
+        uint c = a + b; // 将两个变量相加
+        return c;
+    }
+}
+```
+在上面的代码中，我们声明了一个常量和一个变量，然后将他们相加，最后返回结果。  
+常量广泛的用于合约的配置，比如我们可以用来声明一些合约的基本信息，任何不会改变的数据都可以用常量来声明。
+
+## 不变量
+不变量是常量的拓展，他具有和常量一样的性质，但是唯一不同的是，不变量可以在合约的构造函数中进行初始化赋值，而常量则不可以。
+```sol autorun deploySetting="ImmutableContract"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract ImmutableContract{
+    uint public immutable a; // 声明一个不变量
+    constructor(){
+        a = 100; // 初始化不变量
+    }
+}
+```
+我们需要知道的是，不变量具有和常量完全一样的性质，当你在调用不变量的时候，依然会节省gas。
+
+<Challenges>
+<Challenges.Header>
+## 习题
+</Challenges.Header>
+
+<Challenge title='内存变量实践题'>
+<div className='cl-title'>请将下方合约按照注释内容完善，难度：🌟🌟</div>
+<CoEditor runnable={true} deploySetting='TestContract'
+test={async (vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+
+    const compute = (x)=>{
+        return x*x + 11*x + 24
+    }
+
+    const tests = [0,1,3,4,8,12,23,554,1212]
+
+    for(let i = 0;i < tests.length;i++){
+        await h.catchRawTest('检验公式,输入值为：'+i,async()=>{
+            await h.checkResult(contract,'simpleMathChallenge(uint256)',[compute(i).toString()],[i])
+        },data)
+    }
+
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    // 此处X的值为正整数
+    function simpleMathChallenge(uint x) public pure returns(uint){
+        // 请书写代码，按照你前两章所学的知识，将下面代码运行，并且要求运行的结果符合方程 x^2 + 11x + 24 = 0
+        // 请注意，你需要使用内存变量来完成这个任务
+        /* 请开始书写你的代码，你的目标应该是编写 a 变量和 b 变量 */
+        return (x + a) * (x + b)
+    }
+}
+```
+</CoEditor>
+<Challenge.Hint>
+如果你是因为不会声明变量而查看提示，那么你可以重新阅读上面的变量章节。  
+如果你是因为不了解数学公式而查看提示，那么下面会提供一个数学公式的解释。
+
+这是一个简单的因式分解问题，可以使用十字相乘法来解答。
+$$
+(x+a)(x+b) = x^2 + (a+b)x + ab
+$$
+通过简单的计算，我们可以得出，$ x^2 + 11x + 24 = 0 $是$(x+3)(x+8) = 0$的因式分解结果，所以我们需要将 $ a = 3 $，$ b = 8 $转换成代码，并写入代码中。
+</Challenge.Hint>
+<Challenge.Solution>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    // 此处X的值为正整数
+    function simpleMathChallenge(uint x) public pure returns(uint){
+        uint a = 3;
+        uint b = 8;
+        return (x + a) * (x + b);
+    }
+}
+```
+</Challenge.Solution>
+</Challenge>
+
+<Challenge title='状态量和全局变量综合实践题'>
+<div className='cl-title'>请将下方合约按照注释内容完善，难度：🌟</div>
+<CoEditor runnable={true} deploySetting='TestContract'
+test={async(vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+    const signer = (await vm.webProvider.listAccounts())[0]
+
+    await h.catchRawTest('检测Owner',async ()=>{
+        await contract.setOwner({from:signer});
+        await h.checkResult(contract,'owner()',[signer])
+    },data)
+
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    address public owner; // 声明一个状态量
+    function setOwner() public {
+        // 请编写代码，将owner的值设置为合约的调用者
+    }
+}
+```
+</CoEditor>
+<Challenge.Hint>
+这一题我们需要用的知识点为对状态量的设置和对全局变量的使用，根据题意，我们需要的是`msg.sender`这个全局变量，不过，实际上`msg`才是一个变量，而`sender`是msg的一个属性，所以我们需要使用`msg.sender`来获取调用者的地址。  
+因此，我们需要将`owner`设置为`msg.sender`即可。
+</Challenge.Hint>
+<Challenge.Solution>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    address public owner; // 声明一个状态量
+    function setOwner() public {
+        owner = msg.sender;
+    }
+}
+```
+</Challenge.Solution>
+</Challenge>
+
+<Challenge title="常量和不变量">
+<div className='cl-title'>请将下方合约按照注释内容完善，难度：🌟🌟🌟</div>
+<CoEditor runnable={true} deploySetting="TestContract"
+test={async(vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+
+    for(let i = 0; i < 3; ++i){
+        const signer = await vm.getSignerAddress(i);
+        const signerProvider = await vm.getSigner(i)
+        let safeAddress;
+        await h.catchRawTest(`检测[${i}]CreateSafe功能`,async ()=>{
+            await contract.connect(signerProvider).createSafe()
+            await h.checkResultCustom(contract,'safeMap(address)',([address])=>{
+                if(address !== '0x0000000000000000000000000000000000000000'){
+                    safeAddress = address
+                    return true
+                }
+            },[signer])
+        },data)
+
+        await h.catchRawTest(`检测Safe[${safeAddress}]合约的owner`,async ()=>{
+            if(!safeAddress) throw new Error('Safe合约地址不存在')
+            const safeContract = await vm.getContractAt('Safe',safeAddress)
+            const result = await safeContract.connect(signerProvider).addCount({from:signer})
+            if(result.gasLimit.toNumber() > 51000){
+                throw new Error(`Safe合约[${safeAddress}]期望gasLimit小于51000，实际为${result.gasLimit.toNumber()}`)
+            }
+        },data)
+    }
+
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+
+    mapping(address => address) public safeMap; // 用于储存用户的Safe合约地址
+
+    function createSafe() public{
+        // 此处代码功能为，创建一个新的Safe合约，并且将地址储存在safeMap中
+        safeMap[msg.sender] = address(new Safe(msg.sender));
+    }
+}
+
+contract Safe{
+    /* 
+    todo: 请编写代码，完成需求：请选择一个合适的量（变量，常量，不变量）并且命名为owner，用于储存Safe合约的拥有者
+    请注意，在addCount函数中，我们会获取owner的值，并且题目限制了最多使用51000gas，请注意⚠️。
+    */
+
+    /* 请在此处编写代码 */
+
+    uint public count;
+    constructor(address owner_){
+        owner = owner_;
+    }
+
+    function addCount() public{
+        require(owner == msg.sender,"Only owner can add count");
+        count += 1;
+    }
+}
+```
+</CoEditor>
+<Challenge.Hint>
+根据题意，我们知道，我们需要在Safe合约中构造的时候，设定owner，但是因为要求51000的最大gas，因此我们需要节省下来一些gas，将owner设置为不变量才能符合题目内容。
+</Challenge.Hint>
+<Challenge.Solution>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    mapping(address => address) public safeMap;
+
+    function createSafe() public{
+        safeMap[msg.sender] = address(new Safe(msg.sender));
+    }
+}
+
+contract Safe{
+    address immutable owner;
+    uint public count;
+
+    constructor(address owner_){
+        owner = owner_;
+    }
+
+    function addCount() public{
+        require(owner == msg.sender,"Only owner can add count");
+        count += 1;
+    }
+}
+```
+</Challenge.Solution>
+</Challenge>
+</Challenges>
