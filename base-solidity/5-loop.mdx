@@ -1,0 +1,168 @@
+---
+title: 循环
+---
+# 循环
+循环是一种重复执行某段代码的结构，它可以让代码重复执行，直到满足某个条件为止。
+
+## for 循环
+for循环是一个使用频率非常高的语法，至少在传统程序开发中的，在区块链上这种对GAS控制非常严格的地方，for循环则是能不用就不用。我们先来看看for循环的结构。  
+一般的for循环语句为`for (初始化执行内容,条件语句,后执行内容) {循环执行内容}`。  
+举一个简单的例子。  
+```sol autorun autocall={[{funcName:"runFor",ignoreResult:true},{funcName:'count'}]}
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public count = 0;
+
+    function runFor() public{
+        // 初始化变量i值为0，当i小于10时，执行循环体，每次循环后i自增1
+        for (uint i = 0; i < 10; i++) {
+            count++;
+        }
+    }
+}
+```
+
+根据上面简单的例子，我们可以轻松掌握for循环的使用方式，不过，你也注意到，for循环中，其实所有的内容都是可选的。也就是说，我们可以去掉初始化执行内容,条件语句,后执行内容甚至是循环执行内容。比如我们可以写一个空循环。  
+ 
+```
+for (;;) {
+    // 无限循环
+    // 在遇到break之前，这将是一段无限循环代码，作用等同于while(true)
+}
+```
+
+我们再举一个常见的例子。
+
+```sol autorun autocall={[{funcName:"runFor",ignoreResult:true},{funcName:'count'}]}
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    // 注意这里起始为10
+    uint public count = 10;
+
+    function runFor() public{
+        // 注意，我们这里省略了初始化执行内容和后执行内容，只保留了条件语句。也就是说，你可以在任何地方执行初始化执行内容，也可以在循环体内直接写 后执行内容。
+        for (; count < 20;) {
+            count++;
+        }
+    }
+}
+```
+
+不过，无法控制的循环其实毫无意义，所以我们需要知道两个重要的关键词，`break`和`continue`。
+- break：跳出循环，不再执行循环体内的代码。
+- continue：跳出本次循环，继续执行下一次循环。
+
+```sol autorun autocall={[{funcName:"runFor",ignoreResult:true},{funcName:'count'}]}
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public count = 0;
+
+    function runFor() public{
+        for (uint i = 0; i < 10; i++) {
+            if (i == 8) {
+                // 虽然条件是 i < 10,但是在break后将不会执行后续循环
+                break;
+            }
+            if (i == 3) {
+                // 跳过本次循环，继续执行下一次循环
+                continue;
+            }
+            count++;
+        }
+    }
+}
+```
+
+## while 循环
+while循环是另一种常见的循环语法，它的结构为`while (条件语句) {循环执行内容}`。实际上，你可以认为他全等于`for (;条件语句;) {循环执行内容}`。  
+举一个简单的例子。
+
+```sol autorun autocall={[{funcName:"runWhile",ignoreResult:true},{funcName:'count'}]}
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    uint public count = 0;
+
+    function runWhile() public{
+        while (count < 10) {
+            count++;
+        }
+    }
+}
+```
+
+同样的，while循环中也可以使用`continue`和`break`关键词来控制流程，这里就不再展开。
+
+<Challenges>
+<Challenge title="循环实践题">
+<div className='cl-title'>请将下方合约按照注释内容完善，难度：🌟🌟</div>
+<CoEditor runnable={true}
+test={async(vm,h)=>{
+    const data = []
+    const contract = h.getMainContract()
+
+    const inputs = [[1,5],[12,30],[44,60],[73243,73300]]
+    const outputs = [7, 112, 388, 585980]
+
+    console.log(outputs)
+
+
+    for(const i in inputs){
+        const input = inputs[i]
+        const output = outputs[i]
+        await h.catchRawTest('测试输入',async()=>{
+            await h.checkResult(contract,'loopRun(uint256,uint256)',[output],input)
+        },data)
+    }
+
+    return h.wrapResult(data)
+}}
+>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    function loopRun(uint start,uint end) public pure returns(uint){
+        uint result = 1;
+        // todo: 请完成需求，从start作为起始数，end为循环结束数进行循环，我们设当前循环数为i，比如start为10，end为20，那么i的值为10,11,12,13,14,15,16,17,18,19
+        // todo: 每次循环进行判断如果result % i == 0，则跳出当前循环。如果result > start * 8 则跳出整个循环。否则将result加上i。
+
+        return result;
+    }
+}
+```
+</CoEditor>
+<Challenge.Hint>
+根据题意，我们可以知道，我们需要使用for循环，但是需要注意的是，我们需要在循环体内使用break和continue关键词来控制流程来完成任务。  
+逐步分解一下内容看这一句，"从start作为起始数，end为循环结束数进行循环，我们设当前循环数为i，比如start为10，end为20，那么i的值为10,11,12,13,14,15,16,17,18,19"  
+也就是说，我们需要进行一个for循环，并且初始化执行内容要创建一个i变量并且赋值为start,条件语句为i小于end,后执行内容为i++。  
+
+那么再看执行的内容，"每次循环进行判断如果result % i == 0，则跳出当前循环。如果result > start * 8 则跳出整个循环。否则将result加上i。"  
+那么就是判断result % i == 0，如果是则跳出当前循环，如果不是则继续执行。然后再判断result > start * 8，如果是则跳出整个循环，如果不是则继续执行。执行result += i。
+</Challenge.Hint>
+<Challenge.Solution>
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+contract TestContract{
+    function loopRun(uint start,uint end) public pure returns(uint){
+        uint result = 1;
+        for (uint i = start; i < end; i++) {
+            if (result % i == 0) {
+                continue;
+            }
+            if (result > start * 8) {
+                break;
+            }
+            result += i;
+        }
+        return result;
+    }
+}
+```
+</Challenge.Solution>
+</Challenge>
+</Challenges>
