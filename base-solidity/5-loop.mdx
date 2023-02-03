@@ -143,6 +143,7 @@ contract TestContract{
 那么再看执行的内容，"每次循环进行判断如果result % i == 0，则跳出当前循环。如果result > start * 8 则跳出整个循环。否则将result加上i。"  
 那么就是判断result % i == 0，如果是则跳出当前循环，如果不是则继续执行。然后再判断result > start * 8，如果是则跳出整个循环，如果不是则继续执行。执行result += i。
 </Challenge.Hint>
+  
 <Challenge.Solution>
 ```
 // SPDX-License-Identifier: MIT
@@ -164,5 +165,7 @@ contract TestContract{
 }
 ```
 </Challenge.Solution>
+  
 </Challenge>
+  
 </Challenges>
